@@ -3,44 +3,36 @@ import axios from 'axios';
 import Swal from 'sweetalert2';
 
 const BookingForm = ({ onBookingSuccess }) => {
-  // States to manage available drivers and selection
   const [availableDrivers, setAvailableDrivers] = useState([]);
-  const [selectedDriverId, setSelectedDriverId] = useState(null);
   
-  // State for the main booking form fields
+  // ✅ ID එක විතරක් නැතුව සම්පූර්ණ Driver Object එකම තියාගන්න state එකක් හැදුවා
+  const [selectedDriver, setSelectedDriver] = useState(null);
+  
   const [formData, setFormData] = useState({
-    passengerName: '', // Supporting name-based booking for modern UX
+    passengerName: '',
     pickupLocation: '',
     destination: '',
     distance: ''
   });
 
-  // Fetch only free drivers from the SK TOURS database
   const fetchAvailableDrivers = async () => {
-    console.log("--- DEBUG: Fetching available drivers for selection cards ---");
     try {
       const response = await axios.get('http://localhost:8080/api/drivers/available');
       setAvailableDrivers(response.data);
-      console.log("--- DEBUG: Drivers loaded: ", response.data.length);
     } catch (error) {
       console.error("--- DEBUG ERROR: Could not fetch drivers ---", error);
     }
   };
 
-  // Load drivers when the component mounts
   useEffect(() => {
     fetchAvailableDrivers();
   }, []);
 
-  // Handle the form submission process
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    console.log("--- DEBUG: Submit button clicked ---");
-
-    // Validation: Ensure a driver is physically selected from the grid
-    if (!selectedDriverId) {
-      console.log("--- DEBUG: Validation failed - No driver selected ---");
+    // ✅ දැන් check කරන්නේ selectedDriver object එක තියෙනවද කියලා
+    if (!selectedDriver) {
       Swal.fire({
         title: 'Driver Required',
         text: 'Please choose your preferred driver from the available cards.',
@@ -50,51 +42,42 @@ const BookingForm = ({ onBookingSuccess }) => {
     }
 
     try {
-      // Prepare the request payload matching the Backend's BookingRequest DTO
       const bookingData = { 
         passengerName: formData.passengerName, 
-        driverId: selectedDriverId,
+        driverId: selectedDriver.id, // Object එකෙන් ID එක ගන්නවා
         pickupLocation: formData.pickupLocation,
         destination: formData.destination,
         distance: parseFloat(formData.distance) 
       };
 
-      console.log("--- DEBUG: Sending Booking Data: ", bookingData);
-
-      // POST request to create the tour booking
       const response = await axios.post('http://localhost:8080/api/bookings/create', bookingData);
       
-      console.log("--- DEBUG: Server response: ", response.data);
-
       Swal.fire({
         title: 'Booking Confirmed!',
-        text: `Success! Your tour with driver ID ${selectedDriverId} is confirmed.`,
+        // ✅ මෙන්න මෙතන තමයි ID එක වෙනුවට නම වැටෙන්න හැදුවේ
+        text: `Success! Your tour with ${selectedDriver.driverName} is confirmed.`,
         icon: 'success',
         confirmButtonColor: '#1a2a6c'
       });
       
-      // Reset form fields after successful booking
       setFormData({ passengerName: '', pickupLocation: '', destination: '', distance: '' });
-      setSelectedDriverId(null);
+      setSelectedDriver(null); // Reset selection
       
-      // Refresh parent list and local driver grid
       onBookingSuccess();
       fetchAvailableDrivers(); 
 
     } catch (error) {
-      console.error("--- DEBUG ERROR: API Call Failed ---", error);
-      Swal.fire('Booking Failed', 'Make sure the backend is running and the driver is still free.', 'error');
+      Swal.fire('Booking Failed', 'Make sure the backend is running.', 'error');
     }
   };
 
   return (
     <div style={formContainerStyle}>
       <h2 style={headerStyle}>🚖 SK TOURS - Modern Booking</h2>
-      <p style={subHeaderStyle}>Enter your details and select a professional guide from the list below.</p>
+      <p style={subHeaderStyle}>Enter details and select your guide.</p>
       
       <form onSubmit={handleSubmit}>
         <div style={gridStyle}>
-          {/* Passenger Input */}
           <div style={inputGroupStyle}>
             <label style={labelStyle}>Full Name</label>
             <input 
@@ -107,12 +90,10 @@ const BookingForm = ({ onBookingSuccess }) => {
             />
           </div>
 
-          {/* Distance Input */}
           <div style={inputGroupStyle}>
             <label style={labelStyle}>Distance (km)</label>
             <input 
               type="number" 
-              min="1" 
               placeholder="Enter km" 
               value={formData.distance} 
               onChange={e => setFormData({...formData, distance: e.target.value})} 
@@ -121,7 +102,6 @@ const BookingForm = ({ onBookingSuccess }) => {
             />
           </div>
 
-          {/* Pickup Point */}
           <div style={inputGroupStyle}>
             <label style={labelStyle}>Pickup Location</label>
             <input 
@@ -134,7 +114,6 @@ const BookingForm = ({ onBookingSuccess }) => {
             />
           </div>
 
-          {/* Destination Point */}
           <div style={inputGroupStyle}>
             <label style={labelStyle}>Destination</label>
             <input 
@@ -148,7 +127,6 @@ const BookingForm = ({ onBookingSuccess }) => {
           </div>
         </div>
 
-        {/* --- Interactive Driver Selection Grid --- */}
         <div style={{ marginTop: '30px' }}>
           <label style={labelStyle}>Available Tour Guides:</label>
           <div style={driverGridStyle}>
@@ -156,17 +134,18 @@ const BookingForm = ({ onBookingSuccess }) => {
               availableDrivers.map(driver => (
                 <div 
                   key={driver.id} 
-                  onClick={() => setSelectedDriverId(driver.id)}
-                  style={driverCardStyle(selectedDriverId === driver.id)}
+                  // ✅ මෙතනදී මුළු driver object එකම state එකට දානවා
+                  onClick={() => setSelectedDriver(driver)}
+                  style={driverCardStyle(selectedDriver?.id === driver.id)}
                 >
                   <div style={{ fontSize: '2rem', marginBottom: '8px' }}>👤</div>
-                  <div style={{ fontWeight: 'bold', color: '#1a2a6c', fontSize: '1rem' }}>{driver.driverName}</div>
-                  <div style={{ fontSize: '0.8rem', color: '#555', marginTop: '4px' }}>{driver.vehicleType}</div>
-                  {selectedDriverId === driver.id && <div style={selectedTag}>SELECTED ✅</div>}
+                  <div style={{ fontWeight: 'bold', color: '#1a2a6c' }}>{driver.driverName}</div>
+                  <div style={{ fontSize: '0.8rem', color: '#555' }}>{driver.vehicleType}</div>
+                  {selectedDriver?.id === driver.id && <div style={selectedTag}>SELECTED ✅</div>}
                 </div>
               ))
             ) : (
-              <div style={noDriverStyle}>⚠️ No drivers are available for booking at the moment.</div>
+              <div style={noDriverStyle}>⚠️ No drivers are available at the moment.</div>
             )}
           </div>
         </div>
@@ -177,7 +156,7 @@ const BookingForm = ({ onBookingSuccess }) => {
   );
 };
 
-// --- Modern Professional Styling ---
+// --- Styles (පරණ ඒවා එහෙම්මමයි) ---
 const formContainerStyle = { backgroundColor: '#ffffff', padding: '35px', borderRadius: '15px', border: '1px solid #eee', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' };
 const headerStyle = { margin: '0 0 8px 0', color: '#1a2a6c', fontWeight: 'bold', fontSize: '1.8rem' };
 const subHeaderStyle = { margin: '0 0 30px 0', color: '#7f8c8d', fontSize: '1rem' };
@@ -186,18 +165,9 @@ const inputGroupStyle = { display: 'flex', flexDirection: 'column', gap: '8px' }
 const labelStyle = { fontSize: '0.9rem', fontWeight: 'bold', color: '#34495e', textTransform: 'uppercase' };
 const inputStyle = { padding: '14px', borderRadius: '8px', border: '1px solid #d1d1d1', backgroundColor: '#fcfcfc', color: '#000', fontSize: '1rem', outline: 'none' };
 const driverGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: '20px', marginTop: '15px' };
-
-const driverCardStyle = (isSelected) => ({ 
-  padding: '20px', borderRadius: '12px', 
-  border: isSelected ? '2px solid #f1c40f' : '1px solid #e0e0e0', 
-  backgroundColor: isSelected ? '#fff9e6' : '#fff', 
-  textAlign: 'center', cursor: 'pointer', transition: 'all 0.3s ease',
-  boxShadow: isSelected ? '0 5px 15px rgba(241, 196, 15, 0.3)' : 'none',
-  transform: isSelected ? 'scale(1.05)' : 'scale(1)'
-});
-
-const selectedTag = { fontSize: '11px', color: '#f39c12', fontWeight: 'bold', marginTop: '10px', letterSpacing: '1px' };
-const noDriverStyle = { gridColumn: 'span 3', padding: '20px', backgroundColor: '#fff5f5', color: '#c53030', borderRadius: '8px', textAlign: 'center', fontStyle: 'italic' };
-const submitBtnStyle = { width: '100%', padding: '18px', backgroundColor: '#1a2a6c', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', marginTop: '40px', fontSize: '1.1rem', letterSpacing: '1px', transition: 'background 0.3s' };
+const driverCardStyle = (isSelected) => ({ padding: '20px', borderRadius: '12px', border: isSelected ? '2px solid #f1c40f' : '1px solid #e0e0e0', backgroundColor: isSelected ? '#fff9e6' : '#fff', textAlign: 'center', cursor: 'pointer', transition: 'all 0.3s ease', transform: isSelected ? 'scale(1.05)' : 'scale(1)' });
+const selectedTag = { fontSize: '11px', color: '#f39c12', fontWeight: 'bold', marginTop: '10px' };
+const noDriverStyle = { gridColumn: 'span 3', padding: '20px', backgroundColor: '#fff5f5', color: '#c53030', borderRadius: '8px', textAlign: 'center' };
+const submitBtnStyle = { width: '100%', padding: '18px', backgroundColor: '#1a2a6c', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', marginTop: '40px', fontSize: '1.1rem' };
 
 export default BookingForm;

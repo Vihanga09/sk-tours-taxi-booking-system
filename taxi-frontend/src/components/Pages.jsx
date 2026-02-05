@@ -1,12 +1,21 @@
 import React from 'react';
+// 📸 Importing images from your assets folder
+import aboutBg from '../assets/about-bg.jpg';   // Nine Arch Bridge
+import contactBg from '../assets/contact-bg.jpg'; // Galle Fort
 
 // --- 1. About Us Page ---
 export const AboutUs = () => (
   <div style={containerStyle}>
+    {/* Featured Image for About Us section */}
+    <img 
+      src={aboutBg} 
+      alt="Nine Arch Bridge Sri Lanka" 
+      style={heroImageStyle} 
+    />
     <h1 style={titleStyle}>About SK TOURS 🚕</h1>
     <div style={contentWrapper}>
       <p style={textStyle}>
-        SK TOURS is a premium ride-sharing and tourist management platform developed for the <b>IT23242104</b> module at <b>SLIIT</b>. 
+        SK TOURS is a premium ride-sharing and tourist management platform developed for the <b>IT23242104</b> module at <b>SLIIT</b>.
         We specialize in connecting tourists with professional local guides and reliable drivers to explore the beauty of Sri Lanka.
       </p>
       <h3 style={{color: '#1a2a6c', marginTop: '20px'}}>Our Mission</h3>
@@ -21,6 +30,12 @@ export const AboutUs = () => (
 export const ContactUs = () => (
   <div style={containerStyle}>
     <h1 style={titleStyle}>Contact Us 📞</h1>
+    {/* Featured Image for Contact Us section */}
+    <img 
+      src={contactBg} 
+      alt="Galle Fort Sri Lanka" 
+      style={{...heroImageStyle, height: '250px'}} 
+    />
     <div style={gridStyle}>
       <div style={infoCard}>
         <h3 style={cardHeadingStyle}>Admin Support</h3>
@@ -44,6 +59,16 @@ export const ContactUs = () => (
 );
 
 // --- CSS STYLES ---
+
+const heroImageStyle = {
+  width: '100%',
+  height: '350px',
+  objectFit: 'cover',
+  borderRadius: '15px',
+  marginBottom: '25px',
+  boxShadow: '0 8px 25px rgba(0,0,0,0.1)'
+};
+
 const containerStyle = { padding: '40px', backgroundColor: '#ffffff', borderRadius: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', animation: 'fadeIn 0.5s ease-in' };
 const titleStyle = { color: '#1a2a6c', marginBottom: '25px', borderBottom: '3px solid #f1c40f', display: 'inline-block', paddingBottom: '5px' };
 const contentWrapper = { textAlign: 'left', lineHeight: '1.8' };

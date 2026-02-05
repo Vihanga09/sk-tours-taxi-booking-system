@@ -54,7 +54,7 @@ const AdminHome = ({ bookingCount }) => {
         <div style={statCard('#27ae60')}>
           <div style={iconStyle}>💰</div>
           <div>
-            {/* ✅ මෙන්න මෙතන තමයි වෙනස කළේ - Estimated නෙවෙයි දැන් Total Revenue */}
+            {/* - Estimated නෙවෙයි දැන් Total Revenue */}
             <h2 style={cardTitle}>Total Revenue</h2>
             <p style={cardValue}>LKR {totalRevenue.toLocaleString()}</p>
           </div>
@@ -85,7 +85,7 @@ const AdminHome = ({ bookingCount }) => {
   );
 };
 
-// ... (පරණ Styles ටික ඒ විදිහටම තියෙන්න දෙන්න)
+// ... Styling Objects ...
 const containerStyle = { padding: '10px', minHeight: '100vh', background: '#f4f7f6' };
 const heroSection = { padding: '40px', marginBottom: '30px', background: 'linear-gradient(135deg, #1a2a6c 0%, #b21f1f 50%, #fdbb2d 100%)', borderRadius: '20px', color: '#fff' };
 const titleStyle = { fontSize: '2.5rem', margin: 0, fontWeight: '800' };

@@ -10,50 +10,56 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/bookings")
 @CrossOrigin(origins = "http://localhost:3000")
-
 public class BookingController {
     
     @Autowired
     private TaxiService taxiService;
     
-    // CREATE - Booking එකක් හදන්න
+    // Create a new booking
     @PostMapping("/create")
     public Booking bookRide(@RequestBody BookingRequest request) {
         return taxiService.createBooking(request);
     }
     
-    // READ - හැම booking එකම ගන්න
+    // Fetch all bookings from the database
     @GetMapping("/all")
     public List<Booking> getAllBookings() {
         return taxiService.getAllBookings();
     }
     
-    // READ - එක booking එකක් ID එකෙන් ගන්න
+    // NEW: Get Total Revenue for the Admin Dashboard
+    @GetMapping("/revenue")
+    public double getTotalRevenue() {
+        // This calls the sum query from our repository via service
+        return taxiService.getTotalRevenue();
+    }
+    
+    // Fetch a single booking record by its ID
     @GetMapping("/{id}")
     public Booking getBookingById(@PathVariable Long id) {
         return taxiService.bookingRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + id));
     }
     
-    // UPDATE - Booking එකක් update කරන්න
+    // Update existing booking details (pickup, destination, etc.)
     @PutMapping("/update/{id}")
     public Booking updateBooking(@PathVariable Long id, @RequestBody BookingRequest request) {
         return taxiService.updateBooking(id, request);
     }
     
-    // DELETE - Booking එකක් delete කරන්න
+    // Permanently remove a booking from the system
     @DeleteMapping("/delete/{id}")
     public String deleteBooking(@PathVariable Long id) {
         return taxiService.deleteBooking(id);
     }
     
-    // CANCEL - Booking එකක් cancel කරන්න (delete නොකර)
+    // Mark a booking as CANCELLED and free the driver
     @PutMapping("/cancel/{id}")
     public Booking cancelBooking(@PathVariable Long id) {
         return taxiService.cancelBooking(id);
     }
     
-    // COMPLETE - Booking එකක් complete කරන්න
+    // Mark a booking as COMPLETED and add the fare to total revenue
     @PutMapping("/complete/{id}")
     public Booking completeBooking(@PathVariable Long id) {
         return taxiService.completeBooking(id);

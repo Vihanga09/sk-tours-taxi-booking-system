@@ -1,4 +1,5 @@
 package com.sliit.taxi.taxi_booking.model;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -11,14 +12,16 @@ public class Driver {
     private Long id; 
     
     private String driverName;
-    private String vehicleType;
-    private Boolean isAvailable; // ✅ boolean එක Boolean එකට change කරන්න
+    private String vehicleType;  // Category: Car, Van, Tuk Tuk
+    private String vehicleModel; // Specific Model: Vezel Z 2025, Aqua, etc.
+    private Boolean isAvailable; 
     
     public Driver() {}
     
-    public Driver(String driverName, String vehicleType, Boolean isAvailable) { // ✅ මෙතනත් Boolean
+    public Driver(String driverName, String vehicleType, String vehicleModel, Boolean isAvailable) {
         this.driverName = driverName;
         this.vehicleType = vehicleType;
+        this.vehicleModel = vehicleModel;
         this.isAvailable = isAvailable;
     }
     
@@ -31,9 +34,12 @@ public class Driver {
     
     public String getVehicleType() { return vehicleType; }
     public void setVehicleType(String vehicleType) { this.vehicleType = vehicleType; }
+
+    public String getVehicleModel() { return vehicleModel; }
+    public void setVehicleModel(String vehicleModel) { this.vehicleModel = vehicleModel; }
     
-    public Boolean isAvailable() { return isAvailable; } // ✅ Boolean
-    public void setIsAvailable(Boolean isAvailable) { // ✅ Boolean
+    public Boolean isAvailable() { return isAvailable; }
+    public void setIsAvailable(Boolean isAvailable) { 
         this.isAvailable = isAvailable; 
     }
 }

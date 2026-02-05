@@ -6,8 +6,9 @@ import BookingForm from './components/BookingForm';
 import BookingList from './components/BookingList';
 import AdminHome from './components/AdminHome';
 import Navbar from './components/Navbar';
-import { AboutUs, ContactUs } from './components/Pages'; // ✅ Pages වලින් Reviews අයින් කළා
-import Reviews from './components/Reviews'; // ✅ අලුතින් හදපු Reviews.jsx එක ගත්තා
+import { AboutUs, ContactUs } from './components/Pages'; 
+import Reviews from './components/Reviews'; 
+import DriverList from './components/DriverList'; // ✅ 1. DriverList එක import කළා
 
 function App() {
   const [bookings, setBookings] = useState([]);
@@ -57,6 +58,9 @@ function App() {
               <Route path="/about" element={<AboutUs />} />
               <Route path="/contact" element={<ContactUs />} />
               <Route path="/reviews" element={<Reviews />} />
+              
+              {/* ✅ 2. Drivers List එකට Route එක දැම්මා */}
+              <Route path="/drivers" element={<DriverList />} /> 
             </Routes>
           </div>
         </div>

@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List; 
-// ✅ Optional import එක සම්පූර්ණයෙන්ම අයින් කළා. දැන් කහ ඉරි එන්නේ නැහැ.
 
 @Service
 public class TaxiService {
@@ -30,12 +29,24 @@ public class TaxiService {
         System.out.println("========================================");
         System.out.println("Starting Fare Calculation Strategy...");
         System.out.println("Distance received from frontend: " + distance + " km");
-        double ratePerKm = 80.0;
+        double ratePerKm = 100.0;
         double totalFare = distance * ratePerKm;
         System.out.println("Calculation Logic: " + distance + " * " + ratePerKm);
         System.out.println("Final Calculated Fare: LKR " + totalFare);
         System.out.println("========================================");
         return totalFare;
+    }
+    
+    // ✅ NEW & SAFE: Revenue method using Java Streams to avoid null issues
+    public double getTotalRevenue() {
+        List<Booking> allBookings = bookingRepository.findAll();
+        double revenue = allBookings.stream()
+                .filter(b -> "COMPLETED".equals(b.getStatus()))
+                .mapToDouble(b -> b.getTotalFare() != null ? b.getTotalFare() : 0.0)
+                .sum();
+        
+        System.out.println("Total System Revenue Calculated: LKR " + revenue);
+        return revenue;
     }
     
     // --- DRIVER LOGIC (CRUD & AVAILABILITY) ---
@@ -63,6 +74,7 @@ public class TaxiService {
         
         driver.setDriverName(driverDetails.getDriverName());
         driver.setVehicleType(driverDetails.getVehicleType());
+        driver.setVehicleModel(driverDetails.getVehicleModel()); // ✅ Added Vehicle Model
         driver.setIsAvailable(driverDetails.isAvailable());
         
         System.out.println("SUCCESS: Driver data updated for " + driver.getDriverName());
@@ -75,7 +87,7 @@ public class TaxiService {
            throw new RuntimeException("ERROR: Could not find driver to delete.");
         }
         driverRepository.deleteById(id);
-        System.out.println("SUCCESS: Driver " + id + " has been removed from the system.");
+        System.out.println("SUCCESS: Driver " + id + " has been removed.");
         return "Driver with ID " + id + " deleted successfully!";
     }
 
@@ -111,70 +123,57 @@ public class TaxiService {
            throw new RuntimeException("Passenger record missing for id: " + id);
         }
         passengerRepository.deleteById(id);
-        return "Passenger with ID " + id + " deleted successfully!";
+        return "Passenger deleted successfully!";
     }
 
-    // --- MAIN BOOKING LOGIC (With Auto-Passenger Registration) ---
+    // --- MAIN BOOKING LOGIC ---
 
     public Booking createBooking(BookingRequest request) {
         System.out.println("=================================================");
         System.out.println("SK TOURS - BOOKING PROCESS STARTED");
         System.out.println("=================================================");
-        System.out.println("Target Passenger: " + request.getPassengerName());
-        System.out.println("Target Driver ID: " + request.getDriverId());
         
         if (request.getPassengerName() == null || request.getDriverId() == null) {
-            System.out.println("CRITICAL FAILURE: Missing required booking parameters.");
             throw new RuntimeException("MANDATORY FIELDS: Passenger Name and Driver ID are required!");
         }
         
-        // Find existing passenger or CREATE new one automatically 
         Passenger passenger = passengerRepository.findByName(request.getPassengerName())
             .orElseGet(() -> {
-                System.out.println("NEW USER DETECTED: Initializing auto-registration for " + request.getPassengerName());
+                System.out.println("NEW USER DETECTED: Auto-registration for " + request.getPassengerName());
                 Passenger newP = new Passenger();
                 newP.setName(request.getPassengerName());
                 return passengerRepository.save(newP);
             });
 
         Driver driver = driverRepository.findById(request.getDriverId())
-            .orElseThrow(() -> new RuntimeException("ERROR: The selected Driver ID does not exist in our database."));
-
-        System.out.println("Checking availability status for driver: " + driver.getDriverName());
+            .orElseThrow(() -> new RuntimeException("ERROR: Driver ID does not exist."));
 
         if (driver.isAvailable() == null || !driver.isAvailable()) {
-            System.out.println("AVAILABILITY ERROR: Driver " + driver.getDriverName() + " is already assigned to another tour.");
+            System.out.println("AVAILABILITY ERROR: Driver " + driver.getDriverName() + " is busy.");
             throw new RuntimeException("Selected driver is currently busy!");
         }
 
-        // Creating the final Booking entity
         Booking booking = new Booking();
         booking.setPassenger(passenger);
         booking.setDriver(driver);
         booking.setPickupLocation(request.getPickupLocation());
         booking.setDestination(request.getDestination());
         booking.setDistance(request.getDistance());
-        booking.setTotalFare(calculateFare(request.getDistance())); // Using internal fare calculation logic
+        booking.setTotalFare(calculateFare(request.getDistance()));
         booking.setBookingTime(java.time.LocalDateTime.now());
         booking.setStatus("CONFIRMED");
 
-        // Save the booking transaction
         Booking savedBooking = bookingRepository.save(booking);
-        System.out.println("SUCCESS: Booking transaction recorded with ID: " + savedBooking.getId());
 
-        // Lock the driver for this tour
         driver.setIsAvailable(false);
         driverRepository.save(driver);
-        System.out.println("STATUS UPDATE: Driver " + driver.getDriverName() + " marked as UNAVAILABLE.");
         
-        System.out.println("=================================================");
-        System.out.println("SK TOURS - BOOKING PROCESS COMPLETED SUCCESSFULLY");
-        System.out.println("=================================================");
+        System.out.println("SUCCESS: Booking ID: " + savedBooking.getId());
         return savedBooking;
     }
 
     public List<Booking> getAllBookings() {
-        System.out.println("Action: Fetching full tour booking history report.");
+        System.out.println("Action: Fetching full tour booking history.");
         return bookingRepository.findAll();
     }
 
@@ -183,24 +182,18 @@ public class TaxiService {
         Booking booking = bookingRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Booking not found with ID: " + id));
         
-        // Logic to handle driver swap if the user changes the driver
         if (request.getDriverId() != null && !request.getDriverId().equals(booking.getDriver().getId())) {
-            System.out.println("SWAP: Releasing current driver and assigning new driver.");
             Driver oldDriver = booking.getDriver();
             oldDriver.setIsAvailable(true);
             driverRepository.save(oldDriver);
             
-            Driver newDriver = driverRepository.findById(request.getDriverId())
-                .orElseThrow(() -> new RuntimeException("New driver profile missing."));
-            
+            Driver newDriver = driverRepository.findById(request.getDriverId()).orElseThrow();
             if (!newDriver.isAvailable()) {
                 throw new RuntimeException("New driver is currently occupied.");
             }
-            
             booking.setDriver(newDriver);
             newDriver.setIsAvailable(false);
             driverRepository.save(newDriver);
-            System.out.println("SWAP: Successfully changed driver for tour " + id);
         }
         
         booking.setPickupLocation(request.getPickupLocation());
@@ -208,22 +201,15 @@ public class TaxiService {
         booking.setDistance(request.getDistance());
         booking.setTotalFare(calculateFare(request.getDistance()));
         
-        System.out.println("SUCCESS: Tour details updated for booking ID: " + id);
         return bookingRepository.save(booking);
     }
 
     public String deleteBooking(Long id) {
-        System.out.println("Action: Initiating permanent deletion of booking: " + id);
-        Booking booking = bookingRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Booking ID not found."));
-        
-        // Always free the driver before deleting the booking record
+        Booking booking = bookingRepository.findById(id).orElseThrow();
         Driver driver = booking.getDriver();
         driver.setIsAvailable(true);
         driverRepository.save(driver);
-        
         bookingRepository.deleteById(id);
-        System.out.println("SUCCESS: Booking " + id + " removed. Guide " + driver.getDriverName() + " is free.");
         return "Booking removed successfully!";
     }
 
@@ -236,7 +222,6 @@ public class TaxiService {
         driver.setIsAvailable(true);
         driverRepository.save(driver);
         
-        System.out.println("STATUS: Ride cancelled. Driver is now available.");
         return bookingRepository.save(booking);
     }
 
@@ -249,7 +234,7 @@ public class TaxiService {
         driver.setIsAvailable(true);
         driverRepository.save(driver);
         
-        System.out.println("STATUS: Ride completed. Total Fare received: LKR " + booking.getTotalFare());
+        System.out.println("SUCCESS: Ride completed. Fare LKR " + booking.getTotalFare() + " confirmed.");
         return bookingRepository.save(booking);
     }
 }

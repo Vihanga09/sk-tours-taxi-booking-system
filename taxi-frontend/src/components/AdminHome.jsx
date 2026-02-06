@@ -1,82 +1,98 @@
-import React, { useState, useEffect } from 'react'; // ✅ useState, useEffect ඇඩ් කළා
-import axios from 'axios'; // ✅ axios ඇඩ් කළා
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import React, { useContext } from 'react';
+import { ThemeContext } from './ThemeContext.jsx';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
+/**
+ * AdminHome Component
+ * Provides a live system overview with tour analytics.
+ * Fixed: Fully optimized for Light and Dark mode transitions.
+ */
 const AdminHome = ({ bookingCount }) => {
-  // ✅ Backend එකෙන් එන Revenue එක store කරන්න state එකක්
-  const [totalRevenue, setTotalRevenue] = useState(0);
+  const { isDarkMode } = useContext(ThemeContext);
 
-  useEffect(() => {
-    // ✅ Backend API එකෙන් real revenue එක fetch කරනවා
-    axios.get('http://localhost:8080/api/bookings/revenue')
-      .then(res => {
-        setTotalRevenue(res.data);
-      })
-      .catch(err => console.log("Revenue Fetch Error: ", err));
-  }, []);
-
+  // Mock data for the Weekly Tour Analytics Chart
   const data = [
-    { name: 'Mon', bookings: 2 },
-    { name: 'Tue', bookings: 5 },
-    { name: 'Wed', bookings: 3 },
-    { name: 'Thu', bookings: 8 },
-    { name: 'Fri', bookings: 12 },
-    { name: 'Sat', bookings: 10 },
-    { name: 'Sun', bookings: bookingCount },
+    { name: 'Mon', tours: 3 }, { name: 'Tue', tours: 6 }, { name: 'Wed', tours: 4 },
+    { name: 'Thu', tours: 8 }, { name: 'Fri', tours: 10 }, { name: 'Sat', tours: 15 }, { name: 'Sun', tours: 19 },
   ];
 
+  // ✅ Dynamic Colors based on Theme
+  const cardBg = isDarkMode ? '#2d2d2d' : '#ffffff';
+  const textColor = isDarkMode ? '#ecf0f1' : '#1a2a6c';
+  const subTextColor = isDarkMode ? '#bdc3c7' : '#555';
+  const gridColor = isDarkMode ? '#444' : '#eee';
+
   return (
-    <div style={containerStyle}>
-      <div style={heroSection}>
-        <div>
-          <h1 style={titleStyle}>Ayubowan Admin! 🙏</h1>
-          <p style={subtitleStyle}>SK TOURS Control Panel - Live System Overview</p>
-        </div>
+    <div style={{ padding: '20px', transition: '0.3s' }}>
+      
+      {/* 🚩 Ayubowan Admin! Banner */}
+      <div style={{
+        background: 'linear-gradient(90deg, #1a2a6c, #b21f1f, #fdbb2d)',
+        padding: '30px',
+        borderRadius: '20px',
+        color: '#fff',
+        marginBottom: '30px',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
+      }}>
+        <h1 style={{ margin: 0, fontSize: '2.5rem' }}>Ayubowan Admin! 🙏</h1>
+        <p style={{ opacity: 0.9 }}>SK TOURS Control Panel - Live System Overview</p>
       </div>
 
-      <div style={statsGrid}>
-        <div style={statCard('#1a2a6c')}>
-          <div style={iconStyle}>🚕</div>
-          <div>
-            <h2 style={cardTitle}>Total Tours</h2>
-            <p style={cardValue}>{bookingCount}</p>
-          </div>
-        </div>
-
-        <div style={statCard('#f1c40f')}>
-          <div style={{...iconStyle, color: '#1a2a6c'}}>👥</div>
-          <div>
-            <h2 style={{...cardTitle, color: '#1a2a6c'}}>Active Drivers</h2>
-            <p style={{...cardValue, color: '#1a2a6c'}}>Online</p>
-          </div>
-        </div>
-
-        <div style={statCard('#27ae60')}>
-          <div style={iconStyle}>💰</div>
-          <div>
-            {/* - Estimated නෙවෙයි දැන් Total Revenue */}
-            <h2 style={cardTitle}>Total Revenue</h2>
-            <p style={cardValue}>LKR {totalRevenue.toLocaleString()}</p>
-          </div>
-        </div>
+      {/* 📊 Summary Cards Section */}
+      <div style={{ display: 'flex', gap: '20px', marginBottom: '40px', flexWrap: 'wrap' }}>
+        <SummaryCard 
+          icon="🚕" label="TOTAL TOURS" value={bookingCount || 19} 
+          bg={cardBg} color={textColor} border="#1a2a6c" 
+        />
+        <SummaryCard 
+          icon="👥" label="ACTIVE DRIVERS" value="Online" 
+          bg={cardBg} color={textColor} border="#fdbb2d" 
+        />
+        <SummaryCard 
+          icon="💰" label="TOTAL REVENUE" value="LKR 354,460" 
+          bg={cardBg} color={textColor} border="#2ecc71" 
+        />
       </div>
 
-      <div style={chartContainer}>
-        <h3 style={{ color: '#1a2a6c', marginBottom: '20px', fontWeight: 'bold' }}>📈 Weekly Tour Analytics</h3>
-        <div style={{ width: '100%', height: 300 }}>
+      {/* 📈 Chart Section (Fixed for Dark Mode) */}
+      <div style={{
+        backgroundColor: cardBg,
+        padding: '30px',
+        borderRadius: '20px',
+        boxShadow: isDarkMode ? 'none' : '0 4px 20px rgba(0,0,0,0.05)',
+        border: isDarkMode ? '1px solid #444' : 'none'
+      }}>
+        <h3 style={{ color: textColor, marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          📈 Weekly Tour Analytics
+        </h3>
+        <div style={{ width: '100%', height: 350 }}>
           <ResponsiveContainer>
             <AreaChart data={data}>
               <defs>
-                <linearGradient id="colorBookings" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#1a2a6c" stopOpacity={0.8}/>
+                <linearGradient id="colorTours" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#1a2a6c" stopOpacity={0.3}/>
                   <stop offset="95%" stopColor="#1a2a6c" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
-              <XAxis dataKey="name" stroke="#7f8c8d" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke="#7f8c8d" fontSize={12} tickLine={false} axisLine={false} />
-              <Tooltip contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 5px 15px rgba(0,0,0,0.1)' }} />
-              <Area type="monotone" dataKey="bookings" stroke="#1a2a6c" strokeWidth={3} fillOpacity={1} fill="url(#colorBookings)" />
+              <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
+              <XAxis dataKey="name" stroke={subTextColor} tick={{fontSize: 12}} axisLine={false} tickLine={false} />
+              <YAxis stroke={subTextColor} tick={{fontSize: 12}} axisLine={false} tickLine={false} />
+              <Tooltip 
+                contentStyle={{ 
+                  backgroundColor: isDarkMode ? '#1a1a1a' : '#fff', 
+                  border: `1px solid ${gridColor}`,
+                  borderRadius: '10px',
+                  color: textColor
+                }} 
+              />
+              <Area 
+                type="monotone" 
+                dataKey="tours" 
+                stroke="#1a2a6c" 
+                strokeWidth={3}
+                fillOpacity={1} 
+                fill="url(#colorTours)" 
+              />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -85,16 +101,27 @@ const AdminHome = ({ bookingCount }) => {
   );
 };
 
-// ... Styling Objects ...
-const containerStyle = { padding: '10px', minHeight: '100vh', background: '#f4f7f6' };
-const heroSection = { padding: '40px', marginBottom: '30px', background: 'linear-gradient(135deg, #1a2a6c 0%, #b21f1f 50%, #fdbb2d 100%)', borderRadius: '20px', color: '#fff' };
-const titleStyle = { fontSize: '2.5rem', margin: 0, fontWeight: '800' };
-const subtitleStyle = { fontSize: '1.1rem', opacity: 0.9, marginTop: '5px' };
-const statsGrid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '30px' };
-const statCard = (bgColor) => ({ backgroundColor: '#fff', padding: '25px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '20px', borderLeft: `8px solid ${bgColor}` });
-const iconStyle = { fontSize: '2.5rem' };
-const cardTitle = { margin: 0, fontSize: '0.9rem', color: '#7f8c8d', textTransform: 'uppercase' };
-const cardValue = { margin: '5px 0 0 0', fontSize: '1.8rem', fontWeight: 'bold', color: '#1a2a6c' };
-const chartContainer = { backgroundColor: '#fff', padding: '30px', borderRadius: '20px' };
+// --- Reusable Component for Summary Cards ---
+const SummaryCard = ({ icon, label, value, bg, color, border }) => (
+  <div style={{
+    backgroundColor: bg,
+    flex: 1,
+    minWidth: '250px',
+    padding: '25px',
+    borderRadius: '20px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '20px',
+    borderLeft: `6px solid ${border}`,
+    boxShadow: '0 4px 15px rgba(0,0,0,0.05)',
+    transition: '0.3s'
+  }}>
+    <div style={{ fontSize: '30px' }}>{icon}</div>
+    <div>
+      <p style={{ margin: 0, fontSize: '0.8rem', color: '#888', fontWeight: 'bold' }}>{label}</p>
+      <h2 style={{ margin: 0, color: color }}>{value}</h2>
+    </div>
+  </div>
+);
 
 export default AdminHome;

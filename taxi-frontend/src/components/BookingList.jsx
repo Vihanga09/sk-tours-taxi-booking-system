@@ -6,6 +6,9 @@ const BookingList = ({ bookings, onBookingUpdated }) => {
   // --- SEARCH STATE ---
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Check if Dark Mode is active
+  const isDark = document.body.getAttribute('data-theme') === 'dark';
+
   // 1. Function to delete a booking (Cancel)
   const handleDelete = async (id) => {
     const result = await Swal.fire({
@@ -29,7 +32,7 @@ const BookingList = ({ bookings, onBookingUpdated }) => {
     }
   };
 
-  // 2. Function to mark booking as Completed (✅ The Fix is here)
+  // 2. Function to mark booking as Completed
   const handleComplete = async (id) => {
     try {
       await axios.put(`http://localhost:8080/api/bookings/complete/${id}`);
@@ -42,9 +45,7 @@ const BookingList = ({ bookings, onBookingUpdated }) => {
         showConfirmButton: false
       });
 
-      // ✅ මේකෙන් App.jsx එකට දැනුම් දෙනවා Drivers + Bookings refresh කරන්න කියලා
       onBookingUpdated(); 
-      
     } catch (error) {
       console.error("Status update error:", error);
       Swal.fire('Error', 'Failed to update status.', 'error');
@@ -60,26 +61,45 @@ const BookingList = ({ bookings, onBookingUpdated }) => {
 
   return (
     <div style={{ marginTop: '30px' }}>
-      <h2 style={{ color: '#1a2a6c', borderBottom: '3px solid #f1c40f', paddingBottom: '10px', marginBottom: '20px' }}>
+      <h2 style={{ 
+        color: isDark ? '#f1c40f' : '#1a2a6c', 
+        borderBottom: `3px solid ${isDark ? '#f1c40f' : '#1a2a6c'}`, 
+        paddingBottom: '10px', 
+        marginBottom: '20px' 
+      }}>
         SK TOURS - Recent Booking List
       </h2>
 
       {/* --- SEARCH BAR SECTION --- */}
       <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <b style={{ color: '#333' }}>🔍 Search:</b>
+        <b style={{ color: isDark ? '#ecf0f1' : '#333' }}>🔍 Search:</b>
         <input 
           type="text" 
           placeholder="Search by Passenger or Driver name..." 
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          style={searchBarStyle}
+          style={{
+            ...searchBarStyle,
+            backgroundColor: isDark ? '#2d2d2d' : '#ffffff',
+            color: isDark ? '#ffffff' : '#000000',
+            borderColor: isDark ? '#444' : '#ddd'
+          }}
         />
       </div>
 
-      <div style={{ overflowX: 'auto', borderRadius: '10px', boxShadow: '0 0 20px rgba(0,0,0,0.15)' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: '#ffffff', minWidth: '800px' }}>
+      <div style={{ 
+        overflowX: 'auto', 
+        borderRadius: '10px', 
+        boxShadow: isDark ? '0 0 20px rgba(0,0,0,0.5)' : '0 0 20px rgba(0,0,0,0.15)' 
+      }}>
+        <table style={{ 
+          width: '100%', 
+          borderCollapse: 'collapse', 
+          backgroundColor: isDark ? '#1e1e1e' : '#ffffff', 
+          minWidth: '800px' 
+        }}>
           <thead>
-            <tr style={{ backgroundColor: '#1a2a6c', color: '#ffffff', textAlign: 'left' }}>
+            <tr style={{ backgroundColor: isDark ? '#333' : '#1a2a6c', color: '#ffffff', textAlign: 'left' }}>
               <th style={thStyle}>ID</th>
               <th style={thStyle}>Passenger</th>
               <th style={thStyle}>Driver</th>
@@ -92,27 +112,29 @@ const BookingList = ({ bookings, onBookingUpdated }) => {
           <tbody>
             {filteredBookings.length === 0 ? (
               <tr>
-                <td colSpan="7" style={{ textAlign: 'center', padding: '30px', color: '#7f8c8d' }}>
+                <td colSpan="7" style={{ textAlign: 'center', padding: '30px', color: isDark ? '#bdc3c7' : '#7f8c8d' }}>
                   No bookings found in SK TOURS records.
                 </td>
               </tr>
             ) : (
               filteredBookings.map((b, index) => (
                 <tr key={b.id} style={{ 
-                  backgroundColor: index % 2 === 0 ? '#f8f9fa' : '#ffffff',
-                  borderBottom: '2px solid #dee2e6' 
+                  backgroundColor: isDark 
+                    ? (index % 2 === 0 ? '#262626' : '#1e1e1e') 
+                    : (index % 2 === 0 ? '#f8f9fa' : '#ffffff'),
+                  borderBottom: `2px solid ${isDark ? '#333' : '#dee2e6'}` 
                 }}>
-                  <td style={tdStyle}>{b.id}</td>
-                  <td style={{ ...tdStyle, fontWeight: 'bold' }}>{b.passenger?.name}</td>
-                  <td style={tdStyle}>{b.driver?.driverName}</td>
+                  <td style={{ ...tdStyle, color: isDark ? '#ecf0f1' : '#333' }}>{b.id}</td>
+                  <td style={{ ...tdStyle, fontWeight: 'bold', color: isDark ? '#f1c40f' : '#000' }}>{b.passenger?.name}</td>
+                  <td style={{ ...tdStyle, color: isDark ? '#ecf0f1' : '#333' }}>{b.driver?.driverName}</td>
                   <td style={tdStyle}>
                     <span style={{ color: '#3498db', fontWeight: '500' }}>{b.pickupLocation}</span> 
-                    <span style={{ margin: '0 8px' }}>➔</span> 
-                    <span style={{ color: '#2c3e50', fontWeight: '500' }}>{b.destination}</span>
+                    <span style={{ margin: '0 8px', color: isDark ? '#fff' : '#000' }}>➔</span> 
+                    <span style={{ color: isDark ? '#1abc9c' : '#2c3e50', fontWeight: '500' }}>{b.destination}</span>
                   </td>
                   <td style={{ ...tdStyle, color: '#e67e22', fontWeight: 'bold' }}>LKR {b.totalFare}</td>
                   <td style={tdStyle}>
-                    <span style={statusBadge(b.status)}>{b.status}</span>
+                    <span style={statusBadge(b.status, isDark)}>{b.status}</span>
                   </td>
                   <td style={tdStyle}>
                     {b.status === 'CONFIRMED' && (
@@ -134,7 +156,7 @@ const BookingList = ({ bookings, onBookingUpdated }) => {
 
 // --- STYLES ---
 const thStyle = { padding: '15px', borderBottom: '2px solid #f1c40f' };
-const tdStyle = { padding: '15px', color: '#333' };
+const tdStyle = { padding: '15px' };
 
 const searchBarStyle = {
   padding: '10px 15px',
@@ -157,15 +179,17 @@ const btnStyle = (color) => ({
   boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
 });
 
-const statusBadge = (status) => ({
+const statusBadge = (status, isDark) => ({
   padding: '6px 12px',
   borderRadius: '20px',
   fontSize: '12px',
   fontWeight: 'bold',
   display: 'inline-block',
-  backgroundColor: status === 'COMPLETED' ? '#d4edda' : status === 'CANCELLED' ? '#f8d7da' : '#fff3cd',
-  color: status === 'COMPLETED' ? '#155724' : status === 'CANCELLED' ? '#721c24' : '#856404',
-  border: status === 'COMPLETED' ? '1px solid #c3e6cb' : status === 'CANCELLED' ? '1px solid #f5c6cb' : '1px solid #ffeeba'
+  backgroundColor: isDark 
+    ? (status === 'COMPLETED' ? '#1b4d2e' : status === 'CANCELLED' ? '#5c191e' : '#5c4d19')
+    : (status === 'COMPLETED' ? '#d4edda' : status === 'CANCELLED' ? '#f8d7da' : '#fff3cd'),
+  color: isDark ? '#ffffff' : (status === 'COMPLETED' ? '#155724' : status === 'CANCELLED' ? '#721c24' : '#856404'),
+  border: `1px solid ${isDark ? 'transparent' : (status === 'COMPLETED' ? '#c3e6cb' : status === 'CANCELLED' ? '#f5c6cb' : '#ffeeba')}`
 });
 
 export default BookingList;

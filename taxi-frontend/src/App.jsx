@@ -5,7 +5,7 @@ import Sidebar from './components/Sidebar';
 import BookingForm from './components/BookingForm';
 import BookingList from './components/BookingList';
 import AdminHome from './components/AdminHome';
-import CustomerHome from './components/CustomerHome'; // ✅ Import the new Customer Home component
+import CustomerHome from './components/CustomerHome'; 
 import Navbar from './components/Navbar';
 import { AboutUs, ContactUs } from './components/Pages'; 
 import Reviews from './components/Reviews'; 
@@ -14,35 +14,36 @@ import Login from './components/Login';
 import Register from './components/Register';
 import { ThemeProvider, ThemeContext } from './components/ThemeContext.jsx';
 
+/**
+ * AppContent Component
+ * Orchestrates the primary routing and layout logic for SK TOURS.
+ * Implements Role-Based Access Control (RBAC) and Theme management.
+ */
 function AppContent() {
   const [bookings, setBookings] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
-  /**
-   * Fetch current user data from LocalStorage to manage 
-   * role-based access control (Admin vs Customer).
-   */
+  // ✅ Retrieve session data to maintain user state and permissions
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
   const { isDarkMode } = useContext(ThemeContext);
 
   /**
-   * Update the user state immediately after a successful login.
+   * Syncs the local user state with localStorage upon successful login.
    */
   const handleLogin = () => {
     setUser(JSON.parse(localStorage.getItem('user')));
   };
 
   /**
-   * Fetch all bookings from the Spring Boot backend.
-   * This is primarily used for Admin analytics and management.
+   * Fetches the global booking list for Admin management.
    */
   const fetchBookings = async () => {
     try {
       const response = await axios.get('http://localhost:8080/api/bookings/all');
       setBookings(response.data);
     } catch (error) {
-      console.error("Error loading bookings", error);
+      console.error("DEBUG: Failed to communicate with Spring Boot API", error);
     }
   };
 
@@ -60,6 +61,7 @@ function AppContent() {
   return (
     <Router>
       <Routes>
+        {/* Authentication Routes */}
         <Route path="/login" element={<Login onLogin={handleLogin} />} />
         <Route path="/register" element={<Register />} />
 
@@ -74,48 +76,48 @@ function AppContent() {
                 overflowX: 'hidden',
                 backgroundColor: isDarkMode ? '#121212' : '#f4f7f6',
                 color: isDarkMode ? '#ffffff' : '#333333',
-                transition: 'all 0.3s ease' 
+                transition: 'background-color 0.3s ease' 
               }}>
                 
-                {/* ✅ Show Sidebar ONLY for Admin users */}
-                {user.role === 'ADMIN' && <Sidebar isOpen={isSidebarOpen} />}
+                {/* ✅ Pass userRole to Sidebar to hide "New Booking" for Admins */}
+                {user.role === 'ADMIN' && (
+                  <Sidebar isOpen={isSidebarOpen} userRole={user.role} />
+                )}
                 
                 <div style={{ 
                   flex: 1, 
-                  /**
-                   * Adjust layout based on role: 
-                   * Admin gets space for Sidebar, Customer gets full-screen view.
-                   */
                   marginLeft: user.role === 'ADMIN' && isSidebarOpen ? '260px' : '0', 
                   transition: 'margin-left 0.3s ease',
                   display: 'flex', 
                   flexDirection: 'column'
                 }}>
-                  {/* ✅ Navbar handles role-based buttons (like "Book Now") */}
+                  {/* Navbar manages role-based CTAs like the "Book a Taxi" button */}
                   <Navbar toggleSidebar={toggleSidebar} userRole={user.role} />
                   
                   <div style={{ padding: '40px', flex: 1 }}>
                     <Routes>
-                      {/* ✅ Role-Based Route Switching */}
+                      {/* ✅ Role-Based Route Protection */}
                       {user.role === 'ADMIN' ? (
                         <>
-                          {/* Admin Dashboard Routes */}
+                          {/* Admin Only Routes */}
                           <Route path="/" element={<AdminHome bookingCount={bookings.length} />} />
                           <Route path="/bookings" element={<BookingList bookings={bookings} onBookingUpdated={handleUpdate} />} />
                           <Route path="/drivers" element={<DriverList />} />
                         </>
                       ) : (
                         <>
-                          {/* ✅ Customer Landing Page with Scenic Imagery */}
+                          {/* Customer Only Routes */}
                           <Route path="/" element={<CustomerHome />} /> 
                           <Route path="/new-booking" element={<BookingForm onBookingSuccess={handleUpdate} key={refreshKey} />} />
                         </>
                       )}
                       
-                      {/* Pages accessible by both Admins and Customers */}
+                      {/* Shared Information Pages */}
                       <Route path="/about" element={<AboutUs />} />
                       <Route path="/contact" element={<ContactUs />} />
-                      <Route path="/reviews" element={<Reviews />} />
+                      
+                      {/* ✅ Passing userRole to Reviews to restrict 'Delete' access */}
+                      <Route path="/reviews" element={<Reviews userRole={user.role} />} />
                     </Routes>
                   </div>
                 </div>
@@ -130,6 +132,10 @@ function AppContent() {
   );
 }
 
+/**
+ * Main App Entry Point
+ * Wraps the application with the Global Theme Context.
+ */
 function App() {
   return (
     <ThemeProvider>

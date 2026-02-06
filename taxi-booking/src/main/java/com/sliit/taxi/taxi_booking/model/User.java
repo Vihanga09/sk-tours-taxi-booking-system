@@ -1,6 +1,12 @@
 package com.sliit.taxi.taxi_booking.model;
+
 import jakarta.persistence.*;
 
+/**
+ * User Entity Model
+ * Represents the 'users' table in the database.
+ * Supports Role-Based Access Control (RBAC) and Admin registration validation.
+ */
 @Entity
 @Table(name = "users")
 public class User {
@@ -19,13 +25,21 @@ public class User {
     private String password;
 
     @Column(nullable = false)
-    private String role; // "CUSTOMER" හෝ "ADMIN"
+    private String role; // Stores "CUSTOMER" or "ADMIN"
 
-    // Default Constructor
+    /**
+     * ✅ Admin Secret Key (Transient)
+     * This field is NOT persisted in the database.
+     * It is only used for temporary validation during Admin registration.
+     */
+    @Transient
+    private String adminKey;
+
+    // --- Constructors ---
+
     public User() {
     }
 
-    // Constructor with fields
     public User(String name, String email, String password, String role) {
         this.name = name;
         this.email = email;
@@ -33,7 +47,8 @@ public class User {
         this.role = role;
     }
 
-    // Getters and Setters
+    // --- Getters and Setters ---
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -48,4 +63,8 @@ public class User {
 
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+
+    // ✅ Crucial for UserController to access the secret key during signup
+    public String getAdminKey() { return adminKey; }
+    public void setAdminKey(String adminKey) { this.adminKey = adminKey; }
 }

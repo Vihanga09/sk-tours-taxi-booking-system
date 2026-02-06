@@ -3,12 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ThemeContext } from './ThemeContext.jsx';
 
 const Navbar = ({ toggleSidebar, userRole }) => {
+  // ✅ Access global theme state from Context
   const { isDarkMode, toggleTheme } = useContext(ThemeContext);
   const navigate = useNavigate();
 
   /**
-   * Clears user session from localStorage and 
-   * redirects the user back to the login page.
+   * Handle user logout by clearing session data 
+   * and redirecting to the login portal.
    */
   const handleLogout = () => {
     localStorage.removeItem('user'); 
@@ -18,62 +19,67 @@ const Navbar = ({ toggleSidebar, userRole }) => {
   return (
     <header style={{
       ...navStyle,
-      backgroundColor: isDarkMode ? '#1f1f1f' : '#ffffff',
-      borderBottom: isDarkMode ? '1px solid #333' : '1px solid #ddd'
+      backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff', // Deeper dark for better contrast
+      borderBottom: isDarkMode ? '1px solid #333' : '1px solid #eee',
+      boxShadow: isDarkMode ? '0 4px 12px rgba(0,0,0,0.5)' : '0 2px 10px rgba(0,0,0,0.05)'
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
         
-        {/* Render Sidebar toggle button only if the logged-in user is an ADMIN */}
+        {/* Render the sidebar toggle button only for ADMIN users */}
         {userRole === 'ADMIN' && (
           <button onClick={toggleSidebar} style={{
             ...btnStyle,
-            color: isDarkMode ? '#ffffff' : '#333333'
+            color: isDarkMode ? '#f1c40f' : '#1a2a6c'
           }}>☰</button>
         )}
         
+        {/* Main Brand Logo - Navigation to Home */}
         <h3 style={{ 
           margin: 0, 
           color: isDarkMode ? '#fdbb2d' : '#1a2a6c',
-          cursor: 'pointer' 
+          cursor: 'pointer',
+          letterSpacing: '0.5px'
         }} onClick={() => navigate('/')}>🚕 SK TOURS</h3>
       </div>
       
       <nav style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
         
-        {/* Call-to-Action button for CUSTOMERS to quickly access the booking form */}
+        {/* Quick access CTA for Customers to create a booking */}
         {userRole === 'CUSTOMER' && (
           <Link to="/new-booking" style={bookBtnStyle}>🚖 Book a Taxi</Link>
         )}
 
-        {/* Standard Navigation Links */}
+        {/* Dynamic Navigation Links with theme-aware colors */}
         <Link to="/about" style={{
           ...linkStyle,
-          color: isDarkMode ? '#ffffff' : '#333'
+          color: isDarkMode ? '#ecf0f1' : '#34495e'
         }}>About Us</Link>
 
         <Link to="/contact" style={{
           ...linkStyle,
-          color: isDarkMode ? '#ffffff' : '#333'
+          color: isDarkMode ? '#ecf0f1' : '#34495e'
         }}>Contact Us</Link>
 
         <Link to="/reviews" style={{
           ...linkStyle,
-          color: isDarkMode ? '#ffffff' : '#333'
+          color: isDarkMode ? '#ecf0f1' : '#34495e'
         }}>Reviews</Link>
 
-        {/* Toggle between Light and Dark themes */}
+        {/* Theme Toggle Button: Switches between Sun and Moon icons */}
         <button 
           onClick={toggleTheme} 
           style={{
             ...themeBtnStyle,
-            backgroundColor: isDarkMode ? '#444' : '#f4f4f4',
-            color: isDarkMode ? '#f1c40f' : '#2c3e50'
+            backgroundColor: isDarkMode ? '#333' : '#f8f9fa',
+            color: isDarkMode ? '#f1c40f' : '#2c3e50',
+            border: isDarkMode ? '1px solid #444' : '1px solid #ddd'
           }}
+          title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
         >
           {isDarkMode ? '☀️' : '🌙'}
         </button>
 
-        {/* Log out button to end the current session */}
+        {/* Secure Logout CTA */}
         <button onClick={handleLogout} style={logoutBtnStyle}>
           Logout
         </button>
@@ -82,55 +88,54 @@ const Navbar = ({ toggleSidebar, userRole }) => {
   );
 };
 
-// --- STYLES (Inline CSS for rapid prototyping) ---
+// --- STYLES (Modern UI Design for SLIIT IT23242104 Project) ---
 const navStyle = { 
-  padding: '10px 30px', 
+  padding: '12px 40px', 
   display: 'flex', 
   justifyContent: 'space-between', 
   alignItems: 'center',
-  transition: 'all 0.3s ease',
+  transition: 'background-color 0.3s ease, border 0.3s ease',
   position: 'sticky',
   top: 0,
   zIndex: 1000
 };
 
-const btnStyle = { fontSize: '24px', background: 'none', border: 'none', cursor: 'pointer' };
-const linkStyle = { textDecoration: 'none', fontWeight: 'bold', fontSize: '14px' };
+const btnStyle = { fontSize: '24px', background: 'none', border: 'none', cursor: 'pointer', transition: '0.2s' };
+const linkStyle = { textDecoration: 'none', fontWeight: '600', fontSize: '14px', transition: 'color 0.2s' };
 
 const bookBtnStyle = {
   backgroundColor: '#fdbb2d',
   color: '#000',
-  padding: '8px 16px',
-  borderRadius: '10px',
+  padding: '10px 18px',
+  borderRadius: '12px',
   textDecoration: 'none',
   fontWeight: 'bold',
-  fontSize: '14px',
+  fontSize: '13px',
   boxShadow: '0 4px 10px rgba(253, 187, 45, 0.3)',
-  transition: 'transform 0.2s ease'
+  transition: 'transform 0.2s ease, background-color 0.2s ease'
 };
 
 const logoutBtnStyle = {
   backgroundColor: '#e74c3c',
   color: '#fff',
   border: 'none',
-  padding: '8px 15px',
-  borderRadius: '8px',
+  padding: '9px 18px',
+  borderRadius: '10px',
   cursor: 'pointer',
   fontWeight: 'bold',
-  fontSize: '13px'
+  fontSize: '13px',
+  transition: 'opacity 0.2s'
 };
 
 const themeBtnStyle = {
-  border: 'none',
   padding: '8px 12px',
-  borderRadius: '20px',
+  borderRadius: '50%', // Rounder style for a more modern look
   cursor: 'pointer',
-  fontSize: '18px',
+  fontSize: '16px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
-  transition: 'all 0.3s ease',
-  boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+  transition: 'all 0.3s ease'
 };
 
 export default Navbar;

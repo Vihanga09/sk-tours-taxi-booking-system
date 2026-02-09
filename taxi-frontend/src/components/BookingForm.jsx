@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { useNavigate } from 'react-router-dom'; // Hook for programmatic navigation
 
 const BookingForm = ({ onBookingSuccess }) => {
   const [availableDrivers, setAvailableDrivers] = useState([]);
+  const navigate = useNavigate(); // Initialize navigation
   
-  // ✅ Stores the entire selected driver object
+  // Stores the entire selected driver object
   const [selectedDriver, setSelectedDriver] = useState(null);
   
   const [formData, setFormData] = useState({
@@ -15,10 +17,12 @@ const BookingForm = ({ onBookingSuccess }) => {
     distance: ''
   });
 
-  // ✅ Check if Dark Mode is active (based on your existing theme toggle)
+  // Check if Dark Mode is active (based on your existing theme toggle)
   const isDark = document.body.getAttribute('data-theme') === 'dark';
 
-  // Fetch available drivers from the Spring Boot backend
+  /**
+   * Fetch available drivers from the Spring Boot backend
+   */
   const fetchAvailableDrivers = async () => {
     try {
       const response = await axios.get('http://localhost:8080/api/drivers/available');
@@ -32,6 +36,9 @@ const BookingForm = ({ onBookingSuccess }) => {
     fetchAvailableDrivers();
   }, []);
 
+  /**
+   * Handle form submission and booking creation
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -54,24 +61,35 @@ const BookingForm = ({ onBookingSuccess }) => {
         distance: parseFloat(formData.distance) 
       };
 
-      await axios.post('http://localhost:8080/api/bookings/create', bookingData);
+      // Send the booking request to the backend
+      const response = await axios.post('http://localhost:8080/api/bookings/create', bookingData);
       
+      // Get the saved booking data (including the generated ID and Fare)
+      const savedBooking = response.data;
+
+      // Show a quick success message before redirecting to the Receipt Page
       Swal.fire({
-        title: 'Booking Confirmed!',
-        text: `Success! Your tour with ${selectedDriver.driverName} is confirmed.`,
+        title: 'Processing...',
+        text: 'Your booking is confirmed. Generating your receipt.',
         icon: 'success',
-        confirmButtonColor: '#1a2a6c'
+        timer: 1500,
+        showConfirmButton: false
       });
       
-      // Reset form and selection state after success
+      // Reset form and selection state
       setFormData({ passengerName: '', pickupLocation: '', destination: '', distance: '' });
       setSelectedDriver(null); 
       
+      // Trigger global state refresh if needed
       onBookingSuccess();
-      fetchAvailableDrivers(); 
+      
+      // ✅ REDIRECT: Send the user to the dedicated Receipt Page using the new booking ID
+      setTimeout(() => {
+        navigate(`/booking-receipt/${savedBooking.id}`);
+      }, 1600);
 
     } catch (error) {
-      Swal.fire('Booking Failed', 'Make sure the backend is running.', 'error');
+      Swal.fire('Booking Failed', 'Make sure the backend server is running.', 'error');
     }
   };
 

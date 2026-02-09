@@ -12,7 +12,10 @@ import Reviews from './components/Reviews';
 import DriverList from './components/DriverList';
 import Login from './components/Login';
 import Register from './components/Register';
+import BookingReceipt from './components/BookingReceipt'; 
+import MyBookings from './components/MyBookings'; // ✅ Added the MyBookings component import
 import { ThemeProvider, ThemeContext } from './components/ThemeContext.jsx';
+
 
 /**
  * AppContent Component
@@ -24,7 +27,7 @@ function AppContent() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   
-  // ✅ Retrieve session data to maintain user state and permissions
+  // Retrieve session data to maintain user state and permissions
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')));
   const { isDarkMode } = useContext(ThemeContext);
 
@@ -61,10 +64,11 @@ function AppContent() {
   return (
     <Router>
       <Routes>
-        {/* Authentication Routes */}
+        {/* Public Authentication Routes */}
         <Route path="/login" element={<Login onLogin={handleLogin} />} />
         <Route path="/register" element={<Register />} />
 
+        {/* Protected Routes Wrapper */}
         <Route 
           path="/*" 
           element={
@@ -79,7 +83,7 @@ function AppContent() {
                 transition: 'background-color 0.3s ease' 
               }}>
                 
-                {/* ✅ Pass userRole to Sidebar to hide "New Booking" for Admins */}
+                {/* Sidebar visibility control based on user role */}
                 {user.role === 'ADMIN' && (
                   <Sidebar isOpen={isSidebarOpen} userRole={user.role} />
                 )}
@@ -91,32 +95,36 @@ function AppContent() {
                   display: 'flex', 
                   flexDirection: 'column'
                 }}>
-                  {/* Navbar manages role-based CTAs like the "Book a Taxi" button */}
+                  {/* Navbar manages role-based CTAs and sidebar toggling */}
                   <Navbar toggleSidebar={toggleSidebar} userRole={user.role} />
                   
                   <div style={{ padding: '40px', flex: 1 }}>
                     <Routes>
-                      {/* ✅ Role-Based Route Protection */}
+                      {/* Role-Based Route Switching */}
                       {user.role === 'ADMIN' ? (
                         <>
-                          {/* Admin Only Routes */}
+                          {/* Admin Specific Routes */}
                           <Route path="/" element={<AdminHome bookingCount={bookings.length} />} />
                           <Route path="/bookings" element={<BookingList bookings={bookings} onBookingUpdated={handleUpdate} />} />
                           <Route path="/drivers" element={<DriverList />} />
                         </>
                       ) : (
                         <>
-                          {/* Customer Only Routes */}
+                          {/* Customer Specific Routes */}
                           <Route path="/" element={<CustomerHome />} /> 
                           <Route path="/new-booking" element={<BookingForm onBookingSuccess={handleUpdate} key={refreshKey} />} />
+                          
+                          {/* ✅ My Bookings History Page */}
+                          <Route path="/my-bookings" element={<MyBookings />} />
+                          
+                          {/* ✅ Receipt Page - Displays detailed booking info */}
+                          <Route path="/booking-receipt/:id" element={<BookingReceipt />} />
                         </>
                       )}
                       
-                      {/* Shared Information Pages */}
+                      {/* Shared Information and Review Pages */}
                       <Route path="/about" element={<AboutUs />} />
                       <Route path="/contact" element={<ContactUs />} />
-                      
-                      {/* ✅ Passing userRole to Reviews to restrict 'Delete' access */}
                       <Route path="/reviews" element={<Reviews userRole={user.role} />} />
                     </Routes>
                   </div>
@@ -134,7 +142,7 @@ function AppContent() {
 
 /**
  * Main App Entry Point
- * Wraps the application with the Global Theme Context.
+ * Wraps the application with the Global Theme Context Provider.
  */
 function App() {
   return (

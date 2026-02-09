@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ThemeContext } from './ThemeContext.jsx';
 
 const Navbar = ({ toggleSidebar, userRole }) => {
-  // ✅ Access global theme state from Context
+  // Access global theme state and toggle function from Context
   const { isDarkMode, toggleTheme } = useContext(ThemeContext);
   const navigate = useNavigate();
 
@@ -19,7 +19,7 @@ const Navbar = ({ toggleSidebar, userRole }) => {
   return (
     <header style={{
       ...navStyle,
-      backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff', // Deeper dark for better contrast
+      backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff', 
       borderBottom: isDarkMode ? '1px solid #333' : '1px solid #eee',
       boxShadow: isDarkMode ? '0 4px 12px rgba(0,0,0,0.5)' : '0 2px 10px rgba(0,0,0,0.05)'
     }}>
@@ -44,9 +44,19 @@ const Navbar = ({ toggleSidebar, userRole }) => {
       
       <nav style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
         
-        {/* Quick access CTA for Customers to create a booking */}
+        {/* Navigation for CUSTOMER role only */}
         {userRole === 'CUSTOMER' && (
-          <Link to="/new-booking" style={bookBtnStyle}>🚖 Book a Taxi</Link>
+          <>
+            {/* Direct link to the History page so user can re-access receipts */}
+            <Link to="/my-bookings" style={{
+              ...linkStyle,
+              color: isDarkMode ? '#f1c40f' : '#1a2a6c',
+              marginRight: '10px'
+            }}>📋 My Bookings</Link>
+
+            {/* Quick access CTA for creating a new booking */}
+            <Link to="/new-booking" style={bookBtnStyle}>🚖 Book a Taxi</Link>
+          </>
         )}
 
         {/* Dynamic Navigation Links with theme-aware colors */}
@@ -88,7 +98,7 @@ const Navbar = ({ toggleSidebar, userRole }) => {
   );
 };
 
-// --- STYLES (Modern UI Design for SLIIT IT23242104 Project) ---
+// --- STYLES (Modern UI Design for SK TOURS Project) ---
 const navStyle = { 
   padding: '12px 40px', 
   display: 'flex', 
@@ -129,7 +139,7 @@ const logoutBtnStyle = {
 
 const themeBtnStyle = {
   padding: '8px 12px',
-  borderRadius: '50%', // Rounder style for a more modern look
+  borderRadius: '50%', 
   cursor: 'pointer',
   fontSize: '16px',
   display: 'flex',

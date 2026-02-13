@@ -12,6 +12,10 @@ import org.springframework.stereotype.Service;
 
 import java.util.List; 
 
+/**
+ * TaxiService handles the core business logic for SK TOURS.
+ * Includes Fare Calculation, Revenue Tracking, Driver/Passenger Management, and Booking Notifications.
+ */
 @Service
 public class TaxiService {
 
@@ -23,6 +27,9 @@ public class TaxiService {
 
     @Autowired
     public BookingRepository bookingRepository;
+
+    @Autowired
+    private EmailService emailService; // ✅ Injecting the Email Service for tour confirmations
 
     // --- FARE CALCULATION ---
     public double calculateFare(double distance) {
@@ -84,7 +91,7 @@ public class TaxiService {
     public String deleteDriver(Long id) {
         System.out.println("Action: Attempting to remove driver with ID: " + id);
         if(!driverRepository.existsById(id)) {
-           throw new RuntimeException("ERROR: Could not find driver to delete.");
+            throw new RuntimeException("ERROR: Could not find driver to delete.");
         }
         driverRepository.deleteById(id);
         System.out.println("SUCCESS: Driver " + id + " has been removed.");
@@ -120,7 +127,7 @@ public class TaxiService {
     public String deletePassenger(Long id) {
         System.out.println("Action: Request to delete passenger ID: " + id);
         if(!passengerRepository.existsById(id)) {
-           throw new RuntimeException("Passenger record missing for id: " + id);
+            throw new RuntimeException("Passenger record missing for id: " + id);
         }
         passengerRepository.deleteById(id);
         return "Passenger deleted successfully!";
@@ -142,6 +149,7 @@ public class TaxiService {
                 System.out.println("NEW USER DETECTED: Auto-registration for " + request.getPassengerName());
                 Passenger newP = new Passenger();
                 newP.setName(request.getPassengerName());
+                newP.setEmail(request.getPassengerEmail()); // Capture email if provided
                 return passengerRepository.save(newP);
             });
 
@@ -159,11 +167,31 @@ public class TaxiService {
         booking.setPickupLocation(request.getPickupLocation());
         booking.setDestination(request.getDestination());
         booking.setDistance(request.getDistance());
+        booking.setPassengerEmail(request.getPassengerEmail()); // ✅ Setting email for notifications
         booking.setTotalFare(calculateFare(request.getDistance()));
         booking.setBookingTime(java.time.LocalDateTime.now());
         booking.setStatus("CONFIRMED");
 
         Booking savedBooking = bookingRepository.save(booking);
+
+        // ✅ FIXED: Calling sendEmail with 3 arguments as defined in your EmailService
+        try {
+            String subject = "SK TOURS - Booking Confirmation ✅";
+            String body = "Ayubowan " + savedBooking.getPassenger().getName() + ",\n\n" +
+                          "Your taxi booking is successful!\n" +
+                          "Pickup: " + savedBooking.getPickupLocation() + "\n" +
+                          "Destination: " + savedBooking.getDestination() + "\n" +
+                          "Fare: LKR " + savedBooking.getTotalFare();
+
+            emailService.sendEmail(
+                savedBooking.getPassengerEmail(), 
+                subject, 
+                body
+            );
+            System.out.println("EMAIL SUCCESS: Confirmation sent to " + savedBooking.getPassengerEmail());
+        } catch (Exception e) {
+            System.err.println("EMAIL ERROR: Notification failed: " + e.getMessage());
+        }
 
         driver.setIsAvailable(false);
         driverRepository.save(driver);

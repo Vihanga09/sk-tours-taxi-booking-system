@@ -1,7 +1,7 @@
 package com.sliit.taxi.taxi_booking.model;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime; // ✅ මේක import කරන්න ඕන
+import java.time.LocalDateTime; // 
 
 @Entity
 public class Booking {
@@ -20,9 +20,10 @@ public class Booking {
     private String pickupLocation;
     private String destination;
     private Double distance;
-    private Double totalFare; // ✅ මේක add කරන්න
-    private LocalDateTime bookingTime; // ✅ මේක add කරන්න
+    private Double totalFare; 
+    private LocalDateTime bookingTime;
     private String status; // "PENDING", "CONFIRMED", "COMPLETED"
+    private String passengerEmail;
     
     public Booking() {}
     
@@ -64,4 +65,8 @@ public class Booking {
     
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public String getPassengerEmail() { return passengerEmail; }
+    public void setPassengerEmail(String passengerEmail) { this.passengerEmail = passengerEmail; }
+
 }

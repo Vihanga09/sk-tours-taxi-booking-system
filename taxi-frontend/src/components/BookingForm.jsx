@@ -12,6 +12,9 @@ const BookingForm = ({ onBookingSuccess }) => {
   
   const [formData, setFormData] = useState({
     passengerName: '',
+    passengerEmail: '',
+    country: '',       // ✅ අලුතින් එකතු කළා
+    phoneNumber: '',   // ✅ අලුතින් එකතු කළා
     pickupLocation: '',
     destination: '',
     distance: ''
@@ -55,6 +58,9 @@ const BookingForm = ({ onBookingSuccess }) => {
     try {
       const bookingData = { 
         passengerName: formData.passengerName, 
+        passengerEmail: formData.passengerEmail,
+        country: formData.country,             // ✅ Backend එකට යනවා
+        phoneNumber: formData.phoneNumber,     // ✅ Backend එකට යනවා
         driverId: selectedDriver.id, 
         pickupLocation: formData.pickupLocation,
         destination: formData.destination,
@@ -70,14 +76,22 @@ const BookingForm = ({ onBookingSuccess }) => {
       // Show a quick success message before redirecting to the Receipt Page
       Swal.fire({
         title: 'Processing...',
-        text: 'Your booking is confirmed. Generating your receipt.',
+        text: 'Your booking is confirmed. Check your email for confirmation!',
         icon: 'success',
         timer: 1500,
         showConfirmButton: false
       });
       
       // Reset form and selection state
-      setFormData({ passengerName: '', pickupLocation: '', destination: '', distance: '' });
+      setFormData({ 
+        passengerName: '', 
+        passengerEmail: '', 
+        country: '', 
+        phoneNumber: '', 
+        pickupLocation: '', 
+        destination: '', 
+        distance: '' 
+      });
       setSelectedDriver(null); 
       
       // Trigger global state refresh if needed
@@ -126,6 +140,44 @@ const BookingForm = ({ onBookingSuccess }) => {
               placeholder="e.g. John Doe" 
               value={formData.passengerName} 
               onChange={e => setFormData({...formData, passengerName: e.target.value})} 
+              required 
+              style={dynamicInput} 
+            />
+          </div>
+
+          <div style={inputGroupStyle}>
+            <label style={dynamicLabel}>Email Address</label>
+            <input 
+              type="email" 
+              placeholder="e.g. john@example.com" 
+              value={formData.passengerEmail} 
+              onChange={e => setFormData({...formData, passengerEmail: e.target.value})} 
+              required 
+              style={dynamicInput} 
+            />
+          </div>
+
+          {/* ✅ Country Field  */}
+          <div style={inputGroupStyle}>
+            <label style={dynamicLabel}>Country</label>
+            <input 
+              type="text" 
+              placeholder="e.g. Sri Lanka" 
+              value={formData.country} 
+              onChange={e => setFormData({...formData, country: e.target.value})} 
+              required 
+              style={dynamicInput} 
+            />
+          </div>
+
+          {/* ✅ Phone Number Field  */}
+          <div style={inputGroupStyle}>
+            <label style={dynamicLabel}>Phone Number</label>
+            <input 
+              type="text" 
+              placeholder="e.g. +94 77 123 4567" 
+              value={formData.phoneNumber} 
+              onChange={e => setFormData({...formData, phoneNumber: e.target.value})} 
               required 
               style={dynamicInput} 
             />
@@ -211,7 +263,7 @@ const BookingForm = ({ onBookingSuccess }) => {
   );
 };
 
-// --- Constant Static Styles ---
+
 const formContainerStyle = { padding: '35px', borderRadius: '15px', border: '1px solid #eee', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' };
 const headerStyle = { margin: '0 0 8px 0', fontWeight: 'bold', fontSize: '1.8rem' };
 const subHeaderStyle = { margin: '0 0 30px 0', fontSize: '1rem' };

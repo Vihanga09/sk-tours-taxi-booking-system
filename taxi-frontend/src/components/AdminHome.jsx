@@ -1,14 +1,16 @@
-import React, { useContext } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
+import axios from 'axios';
 import { ThemeContext } from './ThemeContext.jsx';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 /**
  * AdminHome Component
  * Provides a live system overview with tour analytics.
- * Fixed: Fully optimized for Light and Dark mode transitions.
+ * Updated: Real-time Revenue Fetching and Theme optimizations.
  */
 const AdminHome = ({ bookingCount }) => {
   const { isDarkMode } = useContext(ThemeContext);
+  const [totalRevenue, setTotalRevenue] = useState(0); // ✅ State to store revenue
 
   // Mock data for the Weekly Tour Analytics Chart
   const data = [
@@ -16,7 +18,24 @@ const AdminHome = ({ bookingCount }) => {
     { name: 'Thu', tours: 8 }, { name: 'Fri', tours: 10 }, { name: 'Sat', tours: 15 }, { name: 'Sun', tours: 19 },
   ];
 
-  // ✅ Dynamic Colors based on Theme
+  /**
+   * Fetches the total revenue from the Spring Boot API
+   */
+  const fetchRevenue = async () => {
+    try {
+      const response = await axios.get('http://localhost:8080/api/bookings/revenue');
+      setTotalRevenue(response.data);
+    } catch (error) {
+      console.error("DEBUG: Failed to fetch total revenue", error);
+    }
+  };
+
+  // ✅ Fetch revenue on component mount and whenever bookingCount changes
+  useEffect(() => {
+    fetchRevenue();
+  }, [bookingCount]);
+
+  // Dynamic Colors based on Theme
   const cardBg = isDarkMode ? '#2d2d2d' : '#ffffff';
   const textColor = isDarkMode ? '#ecf0f1' : '#1a2a6c';
   const subTextColor = isDarkMode ? '#bdc3c7' : '#555';
@@ -41,15 +60,17 @@ const AdminHome = ({ bookingCount }) => {
       {/* 📊 Summary Cards Section */}
       <div style={{ display: 'flex', gap: '20px', marginBottom: '40px', flexWrap: 'wrap' }}>
         <SummaryCard 
-          icon="🚕" label="TOTAL TOURS" value={bookingCount || 19} 
+          icon="🚕" label="TOTAL TOURS" value={bookingCount} 
           bg={cardBg} color={textColor} border="#1a2a6c" 
         />
         <SummaryCard 
           icon="👥" label="ACTIVE DRIVERS" value="Online" 
           bg={cardBg} color={textColor} border="#fdbb2d" 
         />
+        {/* ✅ Dynamic Revenue Card showing Backend data */}
         <SummaryCard 
-          icon="💰" label="TOTAL REVENUE" value="LKR 354,460" 
+          icon="💰" label="TOTAL REVENUE" 
+          value={`LKR ${totalRevenue.toLocaleString()}`} 
           bg={cardBg} color={textColor} border="#2ecc71" 
         />
       </div>

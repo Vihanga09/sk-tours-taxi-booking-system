@@ -1,12 +1,13 @@
 package com.sliit.taxi.taxi_booking.dto;
 
 /**
- * Data Transfer Object (DTO) for handling booking requests from the frontend.
- * Updated to support passenger names for auto-registration logic and email for notifications.
+ * Data Transfer Object (DTO) updated with Country and Phone Number fields.
  */
 public class BookingRequest {
     private String passengerName; 
-    private String passengerEmail; // ✅ NEW: Required for sending booking confirmation emails
+    private String passengerEmail; 
+    private String country;       // ✅ NEW
+    private String phoneNumber;   // ✅ NEW
     private Long driverId;
     private String pickupLocation;
     private String destination;
@@ -16,10 +17,12 @@ public class BookingRequest {
     public BookingRequest() {}
     
     // Constructor with all fields
-    public BookingRequest(String passengerName, String passengerEmail, Long driverId, String pickupLocation, 
-                         String destination, Double distance) {
+    public BookingRequest(String passengerName, String passengerEmail, String country, String phoneNumber, 
+                          Long driverId, String pickupLocation, String destination, Double distance) {
         this.passengerName = passengerName;
-        this.passengerEmail = passengerEmail; // ✅ Added
+        this.passengerEmail = passengerEmail;
+        this.country = country;           // ✅ Added
+        this.phoneNumber = phoneNumber;   // ✅ Added
         this.driverId = driverId;
         this.pickupLocation = pickupLocation;
         this.destination = destination;
@@ -28,61 +31,39 @@ public class BookingRequest {
     
     // --- Getters and Setters ---
 
-    public String getPassengerName() {
-        return passengerName;
-    }
-    
-    public void setPassengerName(String passengerName) {
-        this.passengerName = passengerName;
-    }
+    public String getPassengerName() { return passengerName; }
+    public void setPassengerName(String passengerName) { this.passengerName = passengerName; }
 
-    // ✅ NEW: Getter and Setter for passengerEmail
-    public String getPassengerEmail() {
-        return passengerEmail;
-    }
+    public String getPassengerEmail() { return passengerEmail; }
+    public void setPassengerEmail(String passengerEmail) { this.passengerEmail = passengerEmail; }
 
-    public void setPassengerEmail(String passengerEmail) {
-        this.passengerEmail = passengerEmail;
-    }
+    // ✅ NEW: Getter and Setter for country
+    public String getCountry() { return country; }
+    public void setCountry(String country) { this.country = country; }
+
+    // ✅ NEW: Getter and Setter for phoneNumber
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
     
-    public Long getDriverId() {
-        return driverId;
-    }
+    public Long getDriverId() { return driverId; }
+    public void setDriverId(Long driverId) { this.driverId = driverId; }
     
-    public void setDriverId(Long driverId) {
-        this.driverId = driverId;
-    }
+    public String getPickupLocation() { return pickupLocation; }
+    public void setPickupLocation(String pickupLocation) { this.pickupLocation = pickupLocation; }
     
-    public String getPickupLocation() {
-        return pickupLocation;
-    }
+    public String getDestination() { return destination; }
+    public void setDestination(String destination) { this.destination = destination; }
     
-    public void setPickupLocation(String pickupLocation) {
-        this.pickupLocation = pickupLocation;
-    }
+    public Double getDistance() { return distance; }
+    public void setDistance(Double distance) { this.distance = distance; }
     
-    public String getDestination() {
-        return destination;
-    }
-    
-    public void setDestination(String destination) {
-        this.destination = destination;
-    }
-    
-    public Double getDistance() {
-        return distance;
-    }
-    
-    public void setDistance(Double distance) {
-        this.distance = distance;
-    }
-    
-    // toString method for debugging purposes
     @Override
     public String toString() {
         return "BookingRequest{" +
                 "passengerName='" + passengerName + '\'' +
-                ", passengerEmail='" + passengerEmail + '\'' + // ✅ Added to toString
+                ", passengerEmail='" + passengerEmail + '\'' +
+                ", country='" + country + '\'' +      // ✅ Added
+                ", phoneNumber='" + phoneNumber + '\'' + // ✅ Added
                 ", driverId=" + driverId +
                 ", pickupLocation='" + pickupLocation + '\'' +
                 ", destination='" + destination + '\'' +

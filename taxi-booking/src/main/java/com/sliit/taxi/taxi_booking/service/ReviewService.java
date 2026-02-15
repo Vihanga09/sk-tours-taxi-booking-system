@@ -11,6 +11,7 @@ import java.util.List;
  * Provides business logic for managing customer reviews.
  * Communicates directly with the ReviewRepository for database operations.
  */
+@SuppressWarnings("null")
 @Service
 public class ReviewService {
 

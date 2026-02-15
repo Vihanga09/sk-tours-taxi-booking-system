@@ -59,8 +59,8 @@ const BookingForm = ({ onBookingSuccess }) => {
       const bookingData = { 
         passengerName: formData.passengerName, 
         passengerEmail: formData.passengerEmail,
-        country: formData.country,             // ✅ Backend එකට යනවා
-        phoneNumber: formData.phoneNumber,     // ✅ Backend එකට යනවා
+        country: formData.country,             
+        phoneNumber: formData.phoneNumber,     
         driverId: selectedDriver.id, 
         pickupLocation: formData.pickupLocation,
         destination: formData.destination,
@@ -157,7 +157,7 @@ const BookingForm = ({ onBookingSuccess }) => {
             />
           </div>
 
-          {/* ✅ Country Field  */}
+          {/* ✅ Country Field */}
           <div style={inputGroupStyle}>
             <label style={dynamicLabel}>Country</label>
             <input 
@@ -170,7 +170,7 @@ const BookingForm = ({ onBookingSuccess }) => {
             />
           </div>
 
-          {/* ✅ Phone Number Field  */}
+          {/* ✅ Phone Number Field */}
           <div style={inputGroupStyle}>
             <label style={dynamicLabel}>Phone Number</label>
             <input 
@@ -263,7 +263,7 @@ const BookingForm = ({ onBookingSuccess }) => {
   );
 };
 
-
+// --- Constant Static Styles ---
 const formContainerStyle = { padding: '35px', borderRadius: '15px', border: '1px solid #eee', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' };
 const headerStyle = { margin: '0 0 8px 0', fontWeight: 'bold', fontSize: '1.8rem' };
 const subHeaderStyle = { margin: '0 0 30px 0', fontSize: '1rem' };

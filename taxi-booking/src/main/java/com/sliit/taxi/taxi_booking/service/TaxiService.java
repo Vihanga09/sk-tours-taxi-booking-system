@@ -16,6 +16,7 @@ import java.util.List;
  * TaxiService handles the core business logic for SK TOURS.
  * Includes Fare Calculation, Revenue Tracking, Driver/Passenger Management, and Booking Notifications.
  */
+@SuppressWarnings("null")
 @Service
 public class TaxiService {
 
@@ -144,14 +145,25 @@ public class TaxiService {
             throw new RuntimeException("MANDATORY FIELDS: Passenger Name and Driver ID are required!");
         }
         
+        // Find existing or create new passenger
         Passenger passenger = passengerRepository.findByName(request.getPassengerName())
             .orElseGet(() -> {
                 System.out.println("NEW USER DETECTED: Auto-registration for " + request.getPassengerName());
                 Passenger newP = new Passenger();
                 newP.setName(request.getPassengerName());
-                newP.setEmail(request.getPassengerEmail()); // Capture email if provided
+                newP.setEmail(request.getPassengerEmail());
+                
+                
+                newP.setCountry(request.getCountry());
+                newP.setPhoneNumber(request.getPhoneNumber());
+                
                 return passengerRepository.save(newP);
             });
+
+        // If passenger already exists, update their email, country, and phone number if provided
+        if (request.getCountry() != null) passenger.setCountry(request.getCountry());
+        if (request.getPhoneNumber() != null) passenger.setPhoneNumber(request.getPhoneNumber());
+        passengerRepository.save(passenger);
 
         Driver driver = driverRepository.findById(request.getDriverId())
             .orElseThrow(() -> new RuntimeException("ERROR: Driver ID does not exist."));
@@ -174,14 +186,19 @@ public class TaxiService {
 
         Booking savedBooking = bookingRepository.save(booking);
 
-        // ✅ FIXED: Calling sendEmail with 3 arguments as defined in your EmailService
+        // ✅ FIXED: Confirmation Email details with new fields
         try {
             String subject = "SK TOURS - Booking Confirmation ✅";
             String body = "Ayubowan " + savedBooking.getPassenger().getName() + ",\n\n" +
                           "Your taxi booking is successful!\n" +
+                          "----------------------------------\n" +
                           "Pickup: " + savedBooking.getPickupLocation() + "\n" +
                           "Destination: " + savedBooking.getDestination() + "\n" +
-                          "Fare: LKR " + savedBooking.getTotalFare();
+                          "Fare: LKR " + savedBooking.getTotalFare() + "\n" +
+                          "Country: " + (savedBooking.getPassenger().getCountry() != null ? savedBooking.getPassenger().getCountry() : "N/A") + "\n" +
+                          "Phone: " + (savedBooking.getPassenger().getPhoneNumber() != null ? savedBooking.getPassenger().getPhoneNumber() : "N/A") + "\n" +
+                          "----------------------------------\n" +
+                          "Thank you for choosing SK TOURS!";
 
             emailService.sendEmail(
                 savedBooking.getPassengerEmail(), 

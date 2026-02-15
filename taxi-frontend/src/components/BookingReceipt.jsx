@@ -22,12 +22,17 @@ const BookingReceipt = () => {
             <h2 style={{textAlign: 'center', color: '#f1c40f'}}>🚖 SK TOURS RECEIPT</h2>
             <hr />
             <p><b>Booking ID:</b> #{booking.id}</p>
-            <p><b>Customer:</b> {booking.passenger.name}</p>
-            <p><b>Driver:</b> {booking.driver.driverName}</p>
+            <p><b>Customer:</b> {booking.passenger?.name}</p>
+            <p><b>Country:</b> {booking.passenger?.country || 'N/A'}</p>
+            <p><b>Phone:</b> {booking.passenger?.phoneNumber || 'N/A'}</p>
+            
+            <p><b>Driver:</b> {booking.driver?.driverName}</p>
             <p><b>From:</b> {booking.pickupLocation} <b>To:</b> {booking.destination}</p>
+            
             <div style={{ marginTop: '20px', padding: '15px', textAlign: 'center', backgroundColor: '#f1c40f', color: '#000', borderRadius: '10px' }}>
                 <h3 style={{margin: 0}}>Total Fare: LKR {booking.totalFare}.00</h3>
             </div>
+            
             <button onClick={() => navigate('/')} style={{marginTop: '20px', width: '100%', padding: '10px', cursor: 'pointer', backgroundColor: '#1a2a6c', color: '#fff', border: 'none', borderRadius: '5px'}}>Back to Home</button>
         </div>
     );
